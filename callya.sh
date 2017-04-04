@@ -1,38 +1,38 @@
 #/bin/bash
-#var
-callya_file=/tmp/callya_usage;
+prepaid_file=/tmp/prepaid_usage;
 timenow=$(date "+%s");
 
 function check_callya
 {
-	if [ ! -f $callya_file ];
-	then wget -q --output-document=$callya_file wap.meincallya.de/dr/s/ch;
+	if [ ! -f $prepaid_file ];
+	then wget -q --output-document=$prepaid_file wap.meincallya.de/dr/s/ch;
 	fi
 	
 	
-	callya_timestamp=$(stat -c %Z $callya_file);
+	callya_timestamp=$(stat -c %Z $prepaid_file);
 	age_callya_stat=$((timenow - callya_timestamp));
 	if  [[ $age_callya_stat -gt 14400 ]];
-	then wget -q --output-document=$callya_file wap.meincallya.de/dr/s/ch;
+	then wget -q --output-document=$prepaid_file wap.meincallya.de/dr/s/ch;
 	fi;
 }
 
 #cmd
 case "$1" in
-  "balance")
+  "vfbalance")
 	check_callya
-	sed -n -e 's/^.*Guthaben:.*> \([[:digit:]]*\),\([[:digit:]]*\).*$/\1.\2/p' $callya_file
+	sed -n -e 's/^.*Guthaben:.*> \([[:digit:]]*\),\([[:digit:]]*\).*$/\1.\2/p' $prepaid_file
 	;;
-  "number")
+  "vfnumber")
 	check_callya
-	sed -n -e 's/^.*Meine Rufnummer: \([[:digit:]]*\).*$/\1/p' $callya_file
+	sed -n -e 's/^.*Meine Rufnummer: \([[:digit:]]*\).*$/\1/p' $prepaid_file
 	;;
-  "mb1")
+  "vfmb1")
 	check_callya
-	sed -n  -e 's/^.*Highspeed-MB.*> \([[:digit:]]*,*[[:digit:]]*\).*$/\1/p' $callya_file | sed -e 's/,/./g'
+	sed -n -e 's/^.*Highspeed-MB.*> \([[:digit:]]*.*[[:digit:]]*\)MB.*$/\1/p' $prepaid_file | sed -e 's/\.//g' | sed -e 's/,/./g'
 	;;
-  "mb2")
-	gbtotal=$(sed -n  -e 's/^.*B von \([[:digit:]]*.*[[:digit:]]*,*[[:digit:]] *\).*$/\1/p' $callya_file | sed -e 's/\.//g');let "mbtotal = gbtotal  * 1024"; echo $mbtotal
+  "vfmb2")
+	check_callya
+	gbtotal=$(sed -n  -e 's/^.*B von \([[:digit:]]*.*[[:digit:]]*,*[[:digit:]] *\).*$/\1/p' $prepaid_file | sed -e 's/\.//g');let "mbtotal = gbtotal  * 1024"; echo $mbtotal
 	;;
   "ip_WAN")
 	curl -s wgetip.com;echo
